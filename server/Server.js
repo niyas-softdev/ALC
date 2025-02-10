@@ -4,6 +4,7 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const connectDB = require("./config/db"); // Ensure this file properly connects to MongoDB
 const productRoutes = require("./routes/ProductRoute");
+const authRoutes = require('./routes/authRoutes');
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use(
 
 // Define routes
 app.use("/api/products", productRoutes);
+app.use('/api/auth', authRoutes);
 
 // Start the server
 const PORT = process.env.PORT || 5174;
