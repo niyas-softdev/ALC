@@ -21,9 +21,18 @@ function ProductController() {
   const fetchProducts = async () => {
     try {
       const response = await axios.get("http://localhost:5174/api/products");
-      setProducts(response.data);
+
+      // 🛠 Check if it's an array or wrapped in an object
+      const data = Array.isArray(response.data)
+        ? response.data
+        : Array.isArray(response.data.products)
+        ? response.data.products
+        : [];
+
+      setProducts(data);
     } catch (error) {
       console.error("Failed to fetch products:", error);
+      setProducts([]); // fallback to empty array to prevent crash
     }
   };
 
@@ -47,7 +56,7 @@ function ProductController() {
   const handleDelete = async (id) => {
     try {
       await axios.delete(`http://localhost:5174/api/products/${id}`);
-      setProducts(products.filter((product) => product._id !== id));
+      setProducts((prev) => prev.filter((product) => product._id !== id));
     } catch (error) {
       console.error("Failed to delete product:", error);
     }
@@ -91,7 +100,7 @@ function ProductController() {
   return (
     <div className="container mx-auto p-6 bg-white min-h-screen rounded-lg shadow-lg">
       <h1 className="text-3xl font-bold text-gray-700 mb-6 text-center">Product Management</h1>
-      
+
       <div className="flex justify-end mb-4">
         <button
           className="bg-pink-500 hover:bg-pink-600 text-white px-6 py-2 rounded shadow"
@@ -113,28 +122,36 @@ function ProductController() {
             </tr>
           </thead>
           <tbody>
-            {products.map((product) => (
-              <tr key={product._id} className="border-t hover:bg-pink-50 transition">
-                <td className="p-3">{product.name}</td>
-                <td className="p-3">${product.price}</td>
-                <td className="p-3">{product.category}</td>
-                <td className="p-3">{product.stock}</td>
-                <td className="p-3 space-x-2">
-                  <button
-                    className="bg-yellow-400 text-white px-3 py-1 rounded hover:bg-yellow-500"
-                    onClick={() => handleEditClick(product)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="bg-red-400 text-white px-3 py-1 rounded hover:bg-red-500"
-                    onClick={() => handleDelete(product._id)}
-                  >
-                    Delete
-                  </button>
+            {Array.isArray(products) && products.length > 0 ? (
+              products.map((product) => (
+                <tr key={product._id} className="border-t hover:bg-pink-50 transition">
+                  <td className="p-3">{product.name}</td>
+                  <td className="p-3">${product.price}</td>
+                  <td className="p-3">{product.category}</td>
+                  <td className="p-3">{product.stock}</td>
+                  <td className="p-3 space-x-2">
+                    <button
+                      className="bg-yellow-400 text-white px-3 py-1 rounded hover:bg-yellow-500"
+                      onClick={() => handleEditClick(product)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="bg-red-400 text-white px-3 py-1 rounded hover:bg-red-500"
+                      onClick={() => handleDelete(product._id)}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="5" className="text-center text-gray-500 py-4">
+                  No products found.
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
@@ -195,12 +212,14 @@ function ProductController() {
               <option key={cat} value={cat}>{cat}</option>
             ))}
           </select>
-          <button type="submit" className="bg-green-500 text-white px-6 py-2 rounded shadow-md hover:bg-green-600">
-            {editingProduct ? "Update Product" : "Add Product"}
-          </button>
-          <button type="button" onClick={resetForm} className="bg-gray-400 text-white px-6 py-2 rounded shadow-md hover:bg-gray-500">
-            Cancel
-          </button>
+          <div className="flex justify-end gap-4">
+            <button type="submit" className="bg-green-500 text-white px-6 py-2 rounded shadow-md hover:bg-green-600">
+              {editingProduct ? "Update Product" : "Add Product"}
+            </button>
+            <button type="button" onClick={resetForm} className="bg-gray-400 text-white px-6 py-2 rounded shadow-md hover:bg-gray-500">
+              Cancel
+            </button>
+          </div>
         </form>
       )}
     </div>

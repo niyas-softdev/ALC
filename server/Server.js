@@ -5,6 +5,12 @@ const bodyParser = require("body-parser");
 const connectDB = require("./config/db"); // Ensure this file properly connects to MongoDB
 const productRoutes = require("./routes/ProductRoute");
 const authRoutes = require('./routes/authRoutes');
+const cartRoute = require("./routes/cartRoute");
+const orderRoutes = require('./routes/orderRoutes');
+const contactRoutes = require('./routes/contactRoutes');
+
+
+
 
 const app = express();
 
@@ -30,6 +36,10 @@ app.use(
 // Define routes
 app.use("/api/products", productRoutes);
 app.use('/api/auth', authRoutes);
+app.use("/api/cart", cartRoute);
+app.use("/api/contact", contactRoutes);
+app.use('/api/orders', orderRoutes);
+
 
 // Start the server
 const PORT = process.env.PORT || 5174;

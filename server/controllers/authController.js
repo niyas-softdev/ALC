@@ -5,45 +5,40 @@ const User = require("../models/UserModel");
 const JWT_SECRET = process.env.JWT_SECRET_KEY || "your_jwt_secret_key";
 const JWT_EXPIRATION = "24h";
 
-// ✅ **User Sign Up**
-exports.signUp = async (req, res) => {
+// ✅ User Sign Up
+const signUp = async (req, res) => {
   const { name, email, password } = req.body;
 
   try {
-    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ success: false, message: "User already exists" });
     }
 
-    // Hash Password
     const hashedPassword = await bcrypt.hash(password, 10);
-    
-    // Create new user
-    const user = new User({ 
-      name, 
-      email, 
+
+    const user = new User({
+      name,
+      email,
       password: hashedPassword,
-      // 🚀 MongoDB will automatically assign "user" if omitted
     });
 
     await user.save();
 
-    // ✅ Generate JWT Token
     const token = jwt.sign(
       { id: user._id, name: user.name, email: user.email, role: user.role },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRATION }
     );
 
-    res.status(201).json({ 
-      success: true, 
+    res.status(201).json({
+      success: true,
       message: "User registered successfully",
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role  // ✅ Ensure role is included in the response
+        role: user.role
       },
       token
     });
@@ -53,10 +48,11 @@ exports.signUp = async (req, res) => {
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };
-// ✅ **User Sign In**
-exports.signIn = async (req, res) => {
+
+// ✅ User Sign In
+const signIn = async (req, res) => {
   const { email, password } = req.body;
-  
+
   try {
     const user = await User.findOne({ email });
     if (!user) {
@@ -68,10 +64,9 @@ exports.signIn = async (req, res) => {
       return res.status(401).json({ success: false, message: "Invalid credentials" });
     }
 
-    // Generate JWT Token
     const token = jwt.sign(
-      { id: user._id, role: user.role },  // Minimal payload
-      JWT_SECRET, 
+      { id: user._id, role: user.role },
+      JWT_SECRET,
       { expiresIn: JWT_EXPIRATION }
     );
 
@@ -87,10 +82,10 @@ exports.signIn = async (req, res) => {
   }
 };
 
-// ✅ **Get User Details**
-exports.getUserDetails = async (req, res) => {
+// ✅ Get User Details
+const getUserDetails = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password"); // Exclude password
+    const user = await User.findById(req.user.id).select("-password");
 
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
@@ -103,7 +98,14 @@ exports.getUserDetails = async (req, res) => {
   }
 };
 
-// ✅ **User Logout**
-exports.logout = (req, res) => {
+// ✅ User Logout
+const logout = (req, res) => {
   res.json({ success: true, message: "Logged out successfully" });
+};
+
+module.exports = {
+  signUp,
+  signIn,
+  getUserDetails,
+  logout
 };

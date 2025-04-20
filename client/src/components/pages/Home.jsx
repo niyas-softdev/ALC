@@ -8,8 +8,7 @@ import Footer from "../common/Footer";
 const Home = () => {
   return (
     <div className="bg-[#FFF5F7] min-h-screen">
-      {/* Navbar */}
-      <AppNavbar />
+      
 
       {/* Hero Section */}
       <div className="relative isolate px-3 lg:px-8">
@@ -44,8 +43,7 @@ const Home = () => {
       {/* Testimonial Section */}
       <TestimonialSection />
 
-      {/* Footer */}
-      <Footer />
+      
     </div>
   );
 };

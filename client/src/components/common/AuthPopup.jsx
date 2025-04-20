@@ -29,43 +29,41 @@ export default function AuthPopup({ onClose, onLoginSuccess }) {
         body: JSON.stringify(formData),
       });
 
-      if (!response.ok) {
-        const errorResponse = await response.json();
-        throw new Error(errorResponse.message || `Error ${response.status}`);
-      }
-
       const data = await response.json();
-      console.log("API Response:", data);
 
-      if (!data.success) {
-        throw new Error("Invalid response structure");
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || `Error ${response.status}`);
       }
 
       if (isSignUp) {
         toast.success("Account Created Successfully! Please Sign In.", { autoClose: 3000 });
         setIsSignUp(false); // Switch to Sign-in Form
-      } else {
-        if (!data.token) throw new Error("No token received after sign-in.");
-
-        const decoded = jwtDecode(data.token);
-        if (!decoded.id) throw new Error("Invalid token - Missing user ID");
-
-        const userData = {
-          id: decoded.id,
-          name: decoded.name || "User",
-          email: decoded.email || "",
-          role: decoded.role || "user",
-          token: data.token,
-        };
-
-        localStorage.setItem("userToken", data.token);
-        localStorage.setItem("userData", JSON.stringify(userData));
-
-        onLoginSuccess(userData);
-
-        toast.success("Welcome Back! 🚀", { autoClose: 3000 });
-        setTimeout(() => onClose(), 1500);
+        return;
       }
+
+      if (!data.token) throw new Error("No token received after sign-in.");
+
+      const decoded = jwtDecode(data.token);
+
+      if (!decoded.id) throw new Error("Invalid token - Missing user ID");
+
+      const userData = {
+        id: decoded.id,
+        name: decoded.name || "User",
+        email: decoded.email || "",
+        role: decoded.role || "user",
+        token: data.token,
+      };
+
+      // 🔥 Save to localStorage
+      localStorage.setItem("userToken", data.token);
+      localStorage.setItem("userId", decoded.id); // ✅ This fixes the issue in CheckoutPage
+
+      // Notify parent component
+      onLoginSuccess(userData);
+
+      toast.success("Welcome Back! 🚀", { autoClose: 3000 });
+      setTimeout(() => onClose(), 1500);
     } catch (error) {
       console.error("Auth Error:", error.message);
       toast.error(error.message || "Something went wrong. Please try again.", { autoClose: 3000 });
@@ -128,7 +126,10 @@ export default function AuthPopup({ onClose, onLoginSuccess }) {
           <span className="text-gray-400">
             {isSignUp ? "Already have an account?" : "Don't have an account?"}
           </span>
-          <button onClick={() => setIsSignUp(!isSignUp)} className="text-blue-400 ml-2 hover:underline">
+          <button
+            onClick={() => setIsSignUp(!isSignUp)}
+            className="text-blue-400 ml-2 hover:underline"
+          >
             {isSignUp ? "Sign In" : "Sign Up"}
           </button>
         </div>
